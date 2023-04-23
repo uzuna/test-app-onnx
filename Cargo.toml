@@ -33,3 +33,9 @@ assets = [
     ["target/release/midas_cli", "usr/local/share/onnx-app/", "755"],
     ["scripts/midas_cli", "usr/local/bin/midas_cli", "755"],
 ]
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1

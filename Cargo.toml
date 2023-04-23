@@ -28,6 +28,7 @@ src = "src/bin/midas_cli.rs"
 maintainer = "FUJINAKA Fumiya <uzuna.kf@gmail.com>"
 copyright = "2023, FUJINAKA Fumiya <uzuna.kg@gmail.com>"
 assets = [
+    ["models/model-small.onnx", "usr/local/share/onnx-app/models/", "755"],
     ["target/release/libonnxruntime.so", "usr/local/share/onnx-app/", "755"],
     ["target/release/midas_cli", "usr/local/share/onnx-app/", "755"],
     ["scripts/midas_cli", "usr/local/bin/midas_cli", "755"],

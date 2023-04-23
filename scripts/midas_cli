@@ -1,2 +1,2 @@
 #!/bin/bash
-ORT_DYLIB_PATH=/usr/local/share/onnx-app/libonnxruntime.so /usr/local/share/onnx-app/midas_cli
+ORT_DYLIB_PATH=/usr/local/share/onnx-app/libonnxruntime.so /usr/local/share/onnx-app/midas_cli --model /usr/local/share/onnx-app/models/model-small.onnx

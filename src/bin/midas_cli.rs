@@ -9,6 +9,7 @@ use ort::{
     Environment, ExecutionProvider, GraphOptimizationLevel, OrtResult, Session, SessionBuilder,
 };
 use structopt::StructOpt;
+use tracing_subscriber::{filter::LevelFilter, EnvFilter};
 
 #[derive(Debug, structopt::StructOpt)]
 struct Opt {
@@ -61,6 +62,8 @@ fn predict(
 }
 
 fn main() -> anyhow::Result<()> {
+    let filter = EnvFilter::from_default_env().add_directive(LevelFilter::INFO.into());
+    tracing_subscriber::fmt().with_env_filter(filter).init();
     let opt = Opt::from_args();
 
     if !opt.input_dir.is_dir() {
@@ -75,7 +78,6 @@ fn main() -> anyhow::Result<()> {
     }
 
     let shape = Shape { w: 256, h: 256 };
-    tracing_subscriber::fmt::init();
 
     let environment = Arc::new({
         let mut builder = Environment::builder().with_name("MiDaS");
@@ -91,7 +93,7 @@ fn main() -> anyhow::Result<()> {
         .with_model_from_file(&opt.model_file)?;
 
     let entries = std::fs::read_dir(&opt.input_dir)
-        .expect(&format!("failed to read directory {:?}", opt.input_dir));
+        .unwrap_or_else(|_| panic!("failed to read directory {:?}", opt.input_dir));
     for entry in entries.filter_map(|x| x.ok()) {
         let path: PathBuf = entry.path();
         if !path.is_file() {
@@ -99,6 +101,7 @@ fn main() -> anyhow::Result<()> {
         }
         // readimage -> resize -> normalize -> make input tensor
         let image = image::open(&path).unwrap().to_rgb8();
+        let now = std::time::Instant::now();
         let resized = image::imageops::resize(
             &image,
             shape.w as u32,
@@ -114,9 +117,12 @@ fn main() -> anyhow::Result<()> {
         });
         let grayscale_image = predict(&session, array, &shape)?;
         let outpath = opt.output_dir.join(path.file_name().unwrap());
-        grayscale_image.save(outpath).unwrap();
+        grayscale_image.save(&outpath).unwrap();
+        log::info!(
+            "saved {:?}, process: {} msec",
+            outpath,
+            now.elapsed().as_millis()
+        );
     }
-
-    // println!("result: {grayscale_image:?}");
     Ok(())
 }
